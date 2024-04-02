@@ -16,6 +16,8 @@ import pathlib
 import fnmatch
 import configparser
 import datetime as datetime
+import psycopg2
+from postgresql import config
 
 scriptPath = pathlib.Path(__file__).parent.resolve()
 sys.path.append(str(scriptPath.parent / 'common'))
@@ -24,7 +26,7 @@ import argsutils as au
 from jsonutils import json2str
 from plugin_module import PluginModule
 
-class TesterSoftwareServer(PluginModule):
+class TesterSoftwareServer(PluginModule):     
 
     # processing module base
     component_name = 'TESTER'
@@ -115,21 +117,28 @@ class TesterSoftwareServer(PluginModule):
             self._process_alert_response_msg(ch.split('.')[1], msg)
         elif fnmatch.fnmatch(ch, 'tester.*.status'):
             self._process_status_msg(ch.split('.')[1], msg)
+            
 
     def _process_response_msg (self, vid, msg):
         ''' process normal response msg'''
         logging.debug('Received Response from {}: {}'.format(vid, msg))
         ''' FIXME: fill in method to update database '''
+        print(111111111111111111111111111111111111111111111111111111111)
+        print(msg['stage'])
 
     def _process_alert_response_msg (self, vid, msg):
         ''' process alert response msg '''
         logging.debug('Received Alert-Response from {}: {}'.format(vid, msg))
         ''' FIXME: fill in method to update database '''
+        print(222222222222222222222222222222222222222222222222222222222)
+        print(msg['stage'])
 
     def _process_status_msg (self, vid, msg):
         ''' process tester status msg '''
         logging.debug('Received Status from {}: {}'.format(vid, msg))
         ''' FIXME: fill in method to update database '''
+        print(333333333333333333333333333333333333333333333333333333333)
+        print(msg['stage'])
 
     def load_plugin_modules (self, **extra_kw):
         ''' load each plugin module and initialize them '''
