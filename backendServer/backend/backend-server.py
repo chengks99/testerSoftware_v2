@@ -17,7 +17,6 @@ import fnmatch
 import configparser
 import datetime as datetime
 import psycopg2
-from postgresql import config
 
 scriptPath = pathlib.Path(__file__).parent.resolve()
 sys.path.append(str(scriptPath.parent / 'common'))
@@ -39,6 +38,8 @@ class TesterSoftwareServer(PluginModule):
         self.cfg = {}
         self.plugins = {}
         self.plugin_modules = []
+        self.connection = None
+        self.cursor = None
         PluginModule.__init__(self,
             redis_conn = self.redis_conn
         )
@@ -52,11 +53,33 @@ class TesterSoftwareServer(PluginModule):
         r.update({
             'plugin-modules': [m.component_name for m in self.plugin_modules]
         })
+
         return r
+        
+    def connect(self):
+        try:
+            print('Connecting to the postgreSQL database...')
+            
+            self.connection = psycopg2.connect(**self.cfg['postgreSQL'])
+            #create cursor
+            self.cursor = self.connection.cursor()
+            print('PostgreSQL database version: ')
+            self.cursor.execute('SELECT version()')
+            
+            db_version = self.cursor.fetchone()
+            print(db_version)
+
+            
+        except(Exception, psycopg2.DatabaseError) as error:
+            print(error)
+            
+        
     
     def start (self, **extra_kw):
         ''' start tester server '''
         self.load_system_configuration(self.args.cfg)
+        self.connect()
+        
         PluginModule.__init__(self,
             redis_conn=self.redis_conn
         )
@@ -69,6 +92,8 @@ class TesterSoftwareServer(PluginModule):
     def close (self):
         ''' terminate Tester Server '''
         PluginModule.close(self)
+        self.cursor.close()
+        self.connection.close()
     
     def housekeep (self):
         ''' housekeeping thread '''
@@ -123,22 +148,29 @@ class TesterSoftwareServer(PluginModule):
         ''' process normal response msg'''
         logging.debug('Received Response from {}: {}'.format(vid, msg))
         ''' FIXME: fill in method to update database '''
-        print(111111111111111111111111111111111111111111111111111111111)
-        print(msg['stage'])
+        msg_json = json2str(msg)
+        sql = "INSERT INTO test1(message)VALUES (%s)"
+        self.cursor.execute(sql, (msg_json,))
+        self.connection.commit()
 
     def _process_alert_response_msg (self, vid, msg):
         ''' process alert response msg '''
         logging.debug('Received Alert-Response from {}: {}'.format(vid, msg))
         ''' FIXME: fill in method to update database '''
-        print(222222222222222222222222222222222222222222222222222222222)
-        print(msg['stage'])
+        msg_json = json2str(msg)
+        sql = "INSERT INTO test1(message)VALUES (%s)"
+        self.cursor.execute(sql, (msg_json,))
+        self.connection.commit()
 
     def _process_status_msg (self, vid, msg):
         ''' process tester status msg '''
         logging.debug('Received Status from {}: {}'.format(vid, msg))
         ''' FIXME: fill in method to update database '''
-        print(333333333333333333333333333333333333333333333333333333333)
-        print(msg['stage'])
+        msg_json = json2str(msg)
+        sql = "INSERT INTO test1(message)VALUES (%s)"
+        self.cursor.execute(sql, (msg_json,))
+        self.connection.commit()
+        
 
     def load_plugin_modules (self, **extra_kw):
         ''' load each plugin module and initialize them '''
@@ -172,8 +204,8 @@ class TesterSoftwareServer(PluginModule):
 if __name__ == "__main__":
     parser = au.init_parser('Tester Server', redis={})
     au.add_arg(parser, '--cfg', h='specify config file {D}', d='config.ini')
+    
     args = au.parse_args(parser)
-
     svr = TesterSoftwareServer(args=args)
     svr.start()
 
