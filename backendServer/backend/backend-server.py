@@ -58,7 +58,7 @@ class TesterSoftwareServer(PluginModule):
         
     def connect(self):
         try:
-            print('Connecting to the postgreSQL database...')
+            logging.debug('Connecting to the postgreSQL database...')
             
             self.connection = psycopg2.connect(**self.cfg['postgreSQL'])
             #create cursor
@@ -66,7 +66,7 @@ class TesterSoftwareServer(PluginModule):
 
             
         except(Exception, psycopg2.DatabaseError) as error:
-            print(error)
+            logging.error(error)
             
         
     
