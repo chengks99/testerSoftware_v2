@@ -63,11 +63,6 @@ class TesterSoftwareServer(PluginModule):
             self.connection = psycopg2.connect(**self.cfg['postgreSQL'])
             #create cursor
             self.cursor = self.connection.cursor()
-            print('PostgreSQL database version: ')
-            self.cursor.execute('SELECT version()')
-            
-            db_version = self.cursor.fetchone()
-            print(db_version)
 
             
         except(Exception, psycopg2.DatabaseError) as error:
